@@ -1,0 +1,13 @@
+const MAX_OPEN_POLLS = 5
+
+const MAX_SLIDES = 5
+
+const MIN_CHOICES = 1
+const MAX_CHOICES = 5
+
+export {
+  MAX_OPEN_POLLS,
+  MAX_SLIDES,
+  MIN_CHOICES,
+  MAX_CHOICES
+}
