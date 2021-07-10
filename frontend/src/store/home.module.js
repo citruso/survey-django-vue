@@ -18,12 +18,12 @@ const getters = {
   },
   getCompletedPolls: (state, getters) => {
     return state.polls.filter(poll => {
-      return getters.isCompleted(poll.id)
+      return getters.isPollCompleted(poll.id)
     })
   },
   getFavsPolls: (state, getters) => {
     return state.polls.filter(poll => {
-      return getters.isFav(poll.id)
+      return getters.isPollBookmarked(poll.id)
     })
   },
 }
@@ -40,6 +40,11 @@ const mutations = {
   },
   closePoll: (state, id) => {
     state.openPolls.splice(state.openPolls.findIndex(poll => poll.id == id), 1)
+    localStorage.setItem('openPolls', JSON.stringify(state.openPolls))
+  },
+  commitPoll: (state, poll) => {
+    const index = state.openPolls.findIndex(item => item.id == poll.id)
+    state.openPolls[index] = poll
     localStorage.setItem('openPolls', JSON.stringify(state.openPolls))
   }
 }

@@ -1,56 +1,64 @@
 <template lang="pug">
   section#action-menu.box
     nav.text
-      ol(v-if="getActiveID == -1")
+      ol(v-if="pollID == -1")
         li#fadeButton(@click="save") Сохранить
-          i.bi-check2
+          i.bi-check2(:class="{ 'fade': fade }")
         .divider
         li(
-          :class="this.isDoneToPublish ? 'enabled' : 'disabled'"
-          @click="publishPoll"
+          :class="isPoll ? 'enabled' : 'disabled'"
+          @click="eventBus.$emit('publish-poll')"
         ) Опубликовать
       ol(v-else)
         li#fadeButton(@click="updateFavs") Добавить в закладки
-          i.bi-check2
-        li(v-if="isAdmin" @click="deletePoll") Удалить
-        .divider(v-if="!isCompleted(getActiveID)")
+          i.bi-check2(:class="{ 'fade': fade }")
+        li(v-if="isAdmin" @click="eventBus.$emit('delete-poll')") Удалить
+        .divider(v-if="!isPollCompleted(pollID)")
         li(
-          v-if="!isCompleted(getActiveID)"
-          :class="this.isDoneToAnswer ? 'enabled' : 'disabled'"
-          @click="createAnswer"
+          v-if="!isPollCompleted(pollID)"
+          :class="isAnswer ? 'enabled' : 'disabled'"
+          @click="eventBus.$emit('create-answer')"
         ) Отправить ответ
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'ActionMenu',
+  data: () => ({
+    fade: false,
+    isPoll: false,
+    isAnswer: false
+  }),
   computed: {
     ...mapGetters([
-      'isDoneToPublish',
-      'isDoneToAnswer',
-      'getActiveID',
-      'isCompleted',
+      'getOpenPoll',
+      'isPollCompleted',
       'isAdmin',
-    ])
-  },
-  methods:{
-    ...mapActions([
-      'createAnswer',
-      'publishPoll',
-      'deletePoll'
     ]),
-    save(e) {
-      e.target.children[0].classList.add('fade')
-      setTimeout(() => e.target.children[0].classList.remove('fade'), 2000)
+    pollID() {
+      return +this.$route.params.id
+    }
+  },
+  methods: {
+    fadeIt() {
+      this.fade = true
+      setTimeout(() => this.fade = false, 2000)
     },
-    updateFavs(e) {
-      e.target.children[0].classList.add('fade')
-      setTimeout(() => e.target.children[0].classList.remove('fade'), 2000)
-      this.$store.commit('toggleFav', this.getActiveID)
+    save() {
+      this.fadeIt()
+    },
+    updateFavs() {
+      this.fadeIt()
+      this.$store.commit('toggleFav', this.pollID)
       this.$store.dispatch('updateUserData')
     }
+  },
+  mounted() {
+    this.eventBus.$on('poll-updated', payload => {
+      Object.assign(this.$data, payload)
+    })
   }
 }
 </script>

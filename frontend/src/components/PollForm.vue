@@ -5,100 +5,187 @@ section#poll-form.box
     #back(@click="prevPage")
       i.bi-chevron-left
       | Назад
-    span {{ getName | formattedName }}
+    span {{ poll.name | formattedName }}
     #forward(v-if="!page" @click="nextPage") Далее
       i.bi-chevron-right
-    #counter(v-else) {{ slidePos + 1 }} / {{ getSlidesLen }}
-  PollFormInfo(v-if="!page")
-  PollFormSlide(v-else :activeType="type")
+    #counter(v-else) {{ slidePos + 1 }} / {{ poll.slides.length }}  <!-- +1 for ux comfort -->
+
+  .overlay(v-if="!page")
+    PollFormInfo(
+      :poll="poll"
+      @input-name="dynamicPollName"
+      @input-desc="poll.desc = $event"
+    )
+  .overlay(v-else)
+    PollFormSlide(
+      v-if="poll.id != -1"
+      :slide="currentSlide"
+      @input-answer="currentSlide.answerText = $event"
+      @push-answer="currentSlide.answers.push($event)"
+      @pop-answer="currentSlide.answers.pop()"
+      @splice-answer="currentSlide.answers.splice($event, 1)"
+    )
+    PollFormSlideNew(
+      v-else
+      :slide="currentSlide"
+      @input-question="currentSlide.question = $event"
+      @input-choice="$set(currentSlide.choices, $event.index, $event.choice)"
+      @push-choice="currentSlide.choices.push('')"
+      @pop-choice="currentSlide.choices.splice($event, 1)"
+    )
+
   #bottombar(v-if="page")
     #menu
       #left.btn-circular.bi-arrow-left(@click="prevSlide")
       #add.btn-circular.bi-three-dots(
-        v-if="getActiveID == -1"
-        @click.stop="showMenu"
+        v-if="poll.id == -1"
+        @click.stop="isVisible = !isVisible"
       )
       #right.btn-circular.bi-arrow-right(@click="nextSlide")
-      SlideTypesMenu(v-show="isVisible" @select-type="type = $event" :activeType="type")
+      PopupMenu(v-show="isVisible" v-on-clickaway="closePopup")
+        li(
+          v-for="item in slidesTypes"
+          :class="[item.class, { 'active': currentSlide.type == item.type }]"
+          @click="currentSlide.type = item.type"
+        ) {{ item.text }}
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mixin as clickaway } from 'vue-clickaway'
+import { mapGetters } from 'vuex'
 import { MAX_SLIDES } from '../store/consts'
+import slidesTypes from '../store/types'
+
+import PopupMenu from './PopupMenu'
 import PollFormInfo from './PollFormInfo'
 import PollFormSlide from './PollFormSlide'
-import SlideTypesMenu from './SlideTypesMenu'
+import PollFormSlideNew from './PollFormSlideNew'
 
 export default {
   name: 'PollForm',
+  mixins: [ clickaway ],
   data: () => ({
+    poll: {},
     page: 0,
-    type: 'button',
+    slidePos: 0,
     isLoading: false,
-    isVisible: false
+    isVisible: false,
+    slidesTypes: slidesTypes
   }),
   components: {
-    SlideTypesMenu,
+    PopupMenu,
     PollFormInfo,
-    PollFormSlide
+    PollFormSlide,
+    PollFormSlideNew
   },
   computed: {
-    ...mapState({
-      slidePos: state => state.poll.slidePos
-    }),
     ...mapGetters([
       'isAdmin',
-      'getName',
-      'getActiveID',
-      'getSlidesLen',
-      'getBlankPoll',
-      'getActivePoll',
       'isPollOpen',
-      'getOpenPoll'
-    ])
+      'getOpenPoll',
+      'getBlankPoll'
+    ]),
+    currentSlide() {
+      return this.poll.slides[this.slidePos]
+    },
+    isAnswer() {
+      return this.poll.slides.every(slide => {
+        return slide.answers.length > 0 || slide.answerText
+      })
+    },
+    isPoll() {
+      return this.poll.name && this.poll.desc
+      && this.poll.slides.every(slide => {
+        return slide.question && slide.choices.every(val => {
+          return slide.type == 'text' ? true : !!val
+        })
+      })
+    }
+  },
+  watch: {
+    poll: {
+      handler() {
+        this.$store.commit('commitPoll', this.poll) // save to open polls
+        this.eventBus.$emit('poll-updated', { // communication with ActionMenu for finish button
+          isAnswer: this.isAnswer,
+          isPoll: this.isPoll
+        })
+      },
+      deep: true
+    },
+    $route(to) {
+      this.initializePoll(to.params.id) // update local data when url changes
+    }
   },
   methods: {
+    initializePoll(id) {
+      this.poll = JSON.parse(JSON.stringify(this.getOpenPoll(id))) // avoid object reference conflicts
+      this.slidePos = 0
+      this.page = 0
+
+      document.title = this.$options.filters.formattedName(this.poll.name)
+    },
+    dynamicPollName(event) {
+      this.poll.name = event;
+      this.$parent.$children[0].$forceUpdate() // update NavMenu for dynamic name display
+      document.title = this.$options.filters.formattedName(event)
+    },
+    pushSlide() {
+      this.poll.slides.push({
+        type: 'button',
+        question: '',
+        choices: [''],
+        answers: [],
+        answerText: ''
+      })
+    },
     prevSlide() {
-      this.$store.commit('setSlidePos', this.slidePos > 0 ? -1 : 0)
+      this.slidePos -= this.slidePos > 0 ? 1 : 0
     },
     nextSlide() {
       if (
-        this.getActiveID == -1
-        && this.getSlidesLen < MAX_SLIDES
-        && this.slidePos + 1 == this.getSlidesLen
+        this.poll.id == -1
+        && this.poll.slides.length < MAX_SLIDES
+        && this.slidePos + 1 == this.poll.slides.length
       )
-        this.$store.commit('pushSlide')
+        this.pushSlide()
 
-      if (this.slidePos + 1 < this.getSlidesLen)
-        this.$store.commit('setSlidePos', 1)
-    },
-    showMenu() {
-      this.isVisible = !this.isVisible
+      if (this.slidePos + 1 < this.poll.slides.length)
+        this.slidePos += 1
     },
     prevPage() {
-      this.page
-        ? this.page -= 1
-        : this.$router.push('/home')
+      this.page ? this.page -= 1 : this.$router.push('/home')
     },
     nextPage() {
       this.page += +!this.page
+    },
+    closePopup() {
+      this.isVisible = false
     }
   },
   created() {
-    const onClickOutside = e => this.isVisible = e.target.id == 'types-menu' && this.isVisible
-    document.addEventListener('click', onClickOutside)
-    this.$on('hook:beforeDestroy', () => document.removeEventListener('click', onClickOutside))
-  },
-  beforeRouteUpdate(to, from, next) {
-    this.page = 0
-    next()
-  },
-  beforeRouteLeave(to, from, next) {
-    this.page = 0
-    next()
+    this.initializePoll(this.$route.params.id)
+
+    this.eventBus.$on('delete-poll', () => {
+      this.$store.dispatch('deletePoll', this.poll.id)
+    })
+    this.eventBus.$on('publish-poll', () => {
+      this.$store.dispatch('publishPoll', this.poll)
+    })
+    this.eventBus.$on('create-answer', () => {
+      this.$store.dispatch('createAnswer', {
+        poll_id: this.poll.id,
+        user_id: this.$store.getters.getUserData.id,
+        answers: this.poll.slides
+      })
+    })
   },
   beforeDestroy() {
-    this.$store.commit('resetPoll')
+    this.eventBus.$off([
+      'delete-poll',
+      'publish-poll',
+      'create-answer'
+    ])
   }
 }
 </script>

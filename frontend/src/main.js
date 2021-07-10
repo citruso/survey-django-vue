@@ -6,6 +6,7 @@ import store from './store'
 import './styles/main.sass'
 
 Vue.config.productionTip = false
+Vue.prototype.eventBus = new Vue()
 
 Vue.filter('formattedName', name => {
   if (name !== undefined) {

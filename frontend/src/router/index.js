@@ -55,7 +55,7 @@ const routes = [
         components: { default: PollsList, leftside: NavMenu, rightside: StatsInfo }
       },
       {
-        path: 'favs',
+        path: 'bookmarks',
         meta: { title: 'Закладки' },
         components: { default: PollsList, leftside: NavMenu, rightside: StatsInfo }
       }
@@ -74,9 +74,8 @@ const routes = [
         path: ':id(\\d+)',
         name: 'poll',
         beforeEnter: async (to, from, next) => {
-          let poll
           if (!store.getters.isPollOpen(to.params.id)) {
-            poll = await store.dispatch('getPoll', to.params.id)
+            const poll = await store.dispatch('getPoll', to.params.id)
 
             if (poll) {
               store.commit('openPoll', poll)
@@ -84,28 +83,23 @@ const routes = [
               next({ name: '404' })
               return
             }
-          } else {
-            poll = store.getters.getOpenPoll(to.params.id)
           }
-          document.title = poll.name ? poll.name : 'Новый опрос'
-          store.commit('setPoll', poll)
           next()
         },
-        components: { default: PollForm, leftside: NavMenu, rightside: ActionMenu },
+        components: { default: PollForm, leftside: NavMenu, rightside: ActionMenu }
       },
       {
         path: 'new',
         beforeEnter: (to, from, next) => {
+          to.params.id = -1
           store.getters.isAdmin ? next() : next('/home')
 
           if (!store.getters.isPollOpen(-1))
             store.commit('openPoll',
               JSON.parse(JSON.stringify(store.getters.getBlankPoll))
             )
-
-          store.commit('setPoll', store.getters.getOpenPoll(-1))
         },
-        components: { default: PollForm, leftside: NavMenu, rightside: ActionMenu },
+        components: { default: PollForm, leftside: NavMenu, rightside: ActionMenu }
       }
     ]
   }

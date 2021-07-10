@@ -1,17 +1,14 @@
 <template lang="pug">
   section#polls-list.box
     #search.bi-search
-      input.text(
-        v-model.trim="search"
-        placeholder="Поиск"
-      )
+      input.text(v-model.trim="search" placeholder="Поиск")
       router-link#create.btn-circular.bi-pencil-square(
         v-if="$store.getters.isAdmin"
         to="/poll/new"
         tag="div"
       )
     ol#items.text
-      PollItem(
+      PollsListItem(
         v-for="poll in filteredPolls"
         :key="poll.id"
         :poll="poll"
@@ -19,12 +16,12 @@
 </template>
 
 <script>
-import PollItem from './PollItem'
+import PollsListItem from './PollsListItem'
 
 export default {
   name: 'PollsList',
   components: {
-    PollItem
+    PollsListItem
   },
   data: () => ({
     search: '',
@@ -41,12 +38,12 @@ export default {
     }
   },
   methods: {
-    queryset(path) {
+    queryset(path) { // update local data when url changes
       switch(path) {
         case '/home/completed':
           this.polls = this.$store.getters.getCompletedPolls
           break
-        case '/home/favs':
+        case '/home/bookmarks':
           this.polls = this.$store.getters.getFavsPolls
           break
         default:

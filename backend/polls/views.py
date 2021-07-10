@@ -57,7 +57,7 @@ class CreatePoll(APIView):
     slides = data['slides']
     for slideData in slides:
       slide = Slide(
-        poll_id=poll.id,
+        poll_id=poll,
         **slideData
       )
       slide.save()
@@ -83,7 +83,15 @@ class DeletePoll(APIView):
 
 class CreateAnswer(APIView):
   def post(self, request):
-    Answer(**request.data).save()
+    data = request.data
+    user = User.objects.get(id=data['user_id'])
+    poll = Poll.objects.get(id=int(data['poll_id']))
+
+    Answer(
+      user_id=user,
+      poll_id=poll,
+      answers=data['answers']
+    ).save()
 
     return Response(status=200)
 

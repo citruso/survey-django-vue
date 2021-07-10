@@ -7,10 +7,12 @@ class Poll(models.Model):
 
 
 class Slide(models.Model):
-  poll = models.ForeignKey('Poll', on_delete=models.CASCADE)
+  poll_id = models.ForeignKey('Poll', on_delete=models.CASCADE)
   type = models.CharField(max_length=30)
   question = models.CharField(max_length=100)
   choices = models.JSONField(default=list)
+  answers = models.JSONField(default=list)
+  answerText = models.CharField(max_length=500)
 
 
 class User(models.Model):
@@ -22,6 +24,6 @@ class User(models.Model):
 
 
 class Answer(models.Model):
-  user = models.ForeignKey('User', on_delete=models.CASCADE)
-  poll = models.ForeignKey('Poll', on_delete=models.CASCADE)
+  user_id = models.ForeignKey('User', on_delete=models.CASCADE)
+  poll_id = models.ForeignKey('Poll', on_delete=models.CASCADE)
   answers = models.JSONField(default=list)

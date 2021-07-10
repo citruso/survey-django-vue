@@ -1,23 +1,28 @@
 <template lang="pug">
 #basic.text
-  article.text(v-if="getActiveID != -1")
-    #name {{ this.getName }}
-    #desc {{ this.getDesc }}
+  article.text(v-if="poll.id != -1")
+    #name {{ poll.name }}
+    #desc {{ poll.desc }}
   form(v-else @submit.prevent)
     legend Основная информация
     label(for="name") Название
-    input#name(:value="getName" @blur="setName" maxlength="100")
+    input#name(
+      :value="poll.name"
+      @blur="$emit('input-name', $event.target.value.trim())"
+      maxlength="100"
+    )
     label(for="desc") Описание
-    textarea#desc(:value="getDesc" @blur="setDesc" maxlength="500")
+    textarea#desc(
+      :value="poll.desc"
+      @blur="$emit('input-desc', $event.target.value.trim())"
+      maxlength="500"
+    )
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex'
-
 export default {
   name: 'PollFormInfo',
-  computed: mapGetters(['getName', 'getDesc', 'getActiveID']),
-  methods: mapMutations(['setName', 'setDesc'])
+  props: ['poll']
 }
 </script>
 

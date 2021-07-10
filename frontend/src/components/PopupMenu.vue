@@ -1,32 +1,17 @@
 <template lang="pug">
-#types-menu.box
+#popup-menu.box
   ol.text
-    li(
-      v-for="item in typesList"
-      :class="[item.class, active(item.type)]"
-      @click="$emit('select-type', item.type)"
-    ) {{ item.text }}
+    slot
 </template>
 
 <script>
-import types from '../store/types'
-
 export default {
-  name: 'SlideTypes',
-  props: ['activeType'],
-  data: () => ({
-    typesList: types
-  }),
-  methods: {
-    active(type) {
-      return this.activeType == type ? 'active' : ''
-    }
-  }
+  name: 'PopupMenu'
 }
 </script>
 
 <style lang="sass">
-#types-menu
+#popup-menu
   position: absolute
   bottom: 50px
   padding: 7px 0

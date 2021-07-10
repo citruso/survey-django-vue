@@ -4,58 +4,39 @@ section#nav-menu.box
     ol
       router-link(to="/home" tag="li") Все опросы
       router-link(to="/home/completed" tag="li") Завершенные
-      router-link(to="/home/favs" tag="li") Закладки
+      router-link(to="/home/bookmarks" tag="li") Закладки
     ol#items(v-if="openPolls.length")
       .divider
-      li(
+      router-link(
         v-for="poll in openPolls"
         :key="poll.id"
-        :class="active(poll.id)"
-        @click="navigate(poll)"
+        :to="poll.id == -1 ? '/poll/new' : `/poll/${poll.id}`"
+        tag="li"
       )
         span {{ poll.name | formattedName }}
-        i.btn-circular.bi-x(@click.stop="closePoll(poll.id)")
+        i.btn-circular.bi-x(@click.stop="close(poll.id)")
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'vuex'
 
 export default {
   name: 'NavMenu',
-  computed: {
-    ...mapState({
-      openPolls: state => state.home.openPolls
-    }),
-    ...mapGetters([
-      'getName',
-      'getActiveID',
-      'getActivePoll'
-    ])
-  },
+  computed: mapState({
+    openPolls: state => state.home.openPolls
+  }),
   methods: {
-    active(id) {
-      return this.getActiveID == id
-        ? 'router-link-exact-active'
-        : 'router-link-active'
-    },
-    navigate(poll) {
-      if (this.getActiveID != poll.id) {
-        this.$store.commit('setPoll', poll)
-        document.title = this.$options.filters.formattedName(poll.name)
-        this.$router.push(poll.id == -1 ? '/poll/new' : `/poll/${poll.id}`)
-      }
-    },
-    closePoll(id) {
+    close(id) {
       this.$store.commit('closePoll', id)
 
-      if (this.$route.path.includes('poll'))
+      if (this.$route.params.id == id)
         this.$router.push('/home')
     }
   },
   created() {
-    this.openPolls.map(poll => {
+    this.openPolls.filter(poll => { // TODO: make it single request
       if (poll.id == -1 || this.$store.dispatch('getPoll', poll.id))
-        return poll
+        return true
 
       this.$store.commit('closePoll', poll.id)
     })

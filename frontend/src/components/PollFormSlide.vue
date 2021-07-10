@@ -1,172 +1,68 @@
 <template lang="pug">
-#slide(v-if="getActiveID == -1")
-  textarea#question.text(
-    :value="slide.question"
-    @blur="slide.question = $event.target.value.trim()"
-    placeholder="Введите Ваш вопрос"
-    maxlength="100"
-  )
-  #answers
-    textarea.text(
-      v-if="slide.type == 'text'"
-      placeholder="Напишите Ваш ответ здесь..."
-      disabled
-    )
-    ol.text(v-else)
-      input.text(
-        v-for="(choice, index) in slide.choices"
-        :value="choice"
-        :key="index"
-        @blur="$set(slide.choices, index, $event.target.value.trim())"
-        placeholder="Ответ"
-        maxlength="50"
-      )
-      #menu
-        #row(v-for="(_, index) in slide.choices" :key="index")
-          #add.btn-circular.bi-plus-circle(
-            :style="{ 'visibility': isMaxChoices ? 'hidden' : 'visible' }"
-            @click="pushChoice()"
-          )
-          #sub.btn-circular.bi-dash-circle(
-            :style="{ 'display': isMinChoices ? 'none' : 'inline-block' }"
-            @click="popChoice(index)"
-          )
-#slide(v-else)
+#slide
   #question.text {{ slide.question }}
   #answers
     textarea.text(
       v-if="slide.type == 'text'"
-      :value="slide.answers[0]"
-      @blur="$set(slide.answers, 0, $event.target.value.trim())"
+      :value="slide.answerText"
+      @blur="$emit('input-answer', $event.target.value.trim())"
       placeholder="Напишите Ваш ответ здесь..."
-      :disabled="isCompleted(getActiveID)"
+      :disabled="isPollCompleted(slide.poll_id)"
+      maxlength="500"
     )
     ol.text(v-else)
       li(
         v-for="(choice, index) in slide.choices"
         :key="index"
-        :class="stateButton(index)"
-        @click="select(index)"
+        :class="stateAnswerButton(index)"
+        @click="selectAnswer(index)"
       ) {{ choice }}
-        #check(:class="check(index)")
+        #check(:class="checkAnswerButton(index)")
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
-import {
-  MIN_CHOICES,
-  MAX_CHOICES
-} from '../store/consts'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'PollFormSlide',
-  props: ['activeType'],
-  data: () => ({
-    slide: {}
-  }),
-  watch: {
-    slidePos() {
-      this.initializeSlide()
-    },
-    activeType() {
-      this.slide.type = this.activeType
-    }
-  },
-  computed: {
-    ...mapState({
-      slidePos: state => state.poll.slidePos
-    }),
-    ...mapGetters([
-      'getActiveID',
-      'isCompleted',
-      'getSlide'
-    ]),
-    isMaxChoices() {
-      return this.slide.choices.length === MAX_CHOICES
-    },
-    isMinChoices() {
-      return this.slide.choices.length === MIN_CHOICES
-    }
-  },
+  props: ['slide'],
+  computed: mapGetters([
+    'isPollCompleted',
+  ]),
   methods: {
-    initializeSlide() {
-      this.slide = JSON.parse(JSON.stringify(this.getSlide))
-      if (!this.slide.answers && this.getActiveID != -1) {
-        this.$set(this.slide, 'answers', [])
-      }
-    },
-    check(index) {
-      return [
-        this.slide.answers.includes(index)
+    checkAnswerButton(index) {
+      return this.slide.answers.includes(index)
         ? 'bi-check-circle'
         : 'bi-circle'
+    },
+    stateAnswerButton(index) {
+      return [
+        this.isPollCompleted(this.slide.poll_id)
+          ? 'not-selectable'
+          : 'btn btn-rect',
+        { 'selected': this.slide.answers.includes(index) }
       ]
     },
-    stateButton(index) {
-      return {
-        'selected': this.slide.answers.includes(index),
-        'btn btn-rect': !this.isCompleted(this.getActiveID),
-        'not-selectable': this.isCompleted(this.getActiveID)
-      }
-    },
-    pushChoice() {
-      if (!this.isMaxChoices)
-        this.slide.choices.push('')
-    },
-    popChoice(index) {
-      if (!this.isMinChoices)
-        this.slide.choices.splice(index, 1)
-    },
-    select(index) {
-      if (!this.isCompleted(this.getActiveID)) {
-        if (this.slide.type == 'button') {
-          if (this.slide.answers.length > 0) {
-            this.slide.answers.pop()
-            this.slide.answers.push(index)
-          } else {
-            this.slide.answers.push(index)
+    selectAnswer(index) {
+      switch(this.slide.type) {
+        case 'button':
+          if (this.slide.answers.length > 0)
+            this.$emit('pop-answer')
+          break
+        case 'multi-button':
+          if (this.slide.answers.includes(index)) {
+            this.$emit('splice-answer', this.slide.answers.indexOf(index))
+            return
           }
-        } else if (this.slide.type == 'multi-button') {
-          if (this.slide.answers.includes(index))
-            this.slide.answers.splice(this.slide.answers.indexOf(index), 1)
-          else
-            this.slide.answers.push(index)
-        }
-        this.$forceUpdate()
       }
+      this.$emit('push-answer', index)
     }
-  },
-  created() {
-    this.initializeSlide()
-  },
-  beforeUpdate() {
-    this.$store.commit('updateSlide',
-      JSON.parse(JSON.stringify(this.slide))
-    )
   }
 }
 </script>
 
 <style lang="sass">
 #slide
-  box-shadow: inset 0 0.7px 0px $divider,inset 0 -0.7px 0px $divider
-  padding: 25px 15% 40px
-  height: 420px
-  display: flex
-  flex-direction: column
-  overflow: overlay
-  background-color: #fff
-  textarea
-    background-color: #fff
-    text-align: center
-    border-radius: 10px
-    border: 1px solid $divider
-    resize: none
-    height: 170px
-    flex-shrink: 0
-    background-color: $hovered
-    max-height: 160px
-    padding: 12px 30px
   #question
     font-size: 24px
     line-height: 33px
@@ -175,7 +71,6 @@ export default {
     overflow-wrap: anywhere
   #answers
     textarea
-      height: 87px
       width: 100%
     ol
       grid-gap: 15px
@@ -213,27 +108,4 @@ export default {
           background: #fff
         &:active
           background: #fff
-      #menu
-        position: absolute
-        display: flex
-        flex-direction: column
-        right: 0
-        font-size: 24px
-        grid-gap: 15px
-        padding-right: 5px
-        & > #row
-          display: flex
-          grid-gap: 5px
-          padding: 4px
-          justify-content: flex-end
-          transition: opacity .1s
-          &:last-of-type #add
-            display: inline-block
-          #add
-            display: none
-          & > *
-            opacity: .4
-            padding: 6px
-            &:hover
-              opacity: 1
 </style>

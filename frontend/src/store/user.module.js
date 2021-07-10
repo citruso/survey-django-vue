@@ -16,8 +16,8 @@ const getters = {
   getUserData: state => state,
   isAdmin: state => state.is_admin,
   isAuth: state => !!state.id,
-  isCompleted: state => id => state.completed.includes(id),
-  isFav: state => id => state.favs.includes(id)
+  isPollCompleted: state => id => state.completed.includes(id),
+  isPollBookmarked: state => id => state.favs.includes(id)
 }
 
 const mutations = {

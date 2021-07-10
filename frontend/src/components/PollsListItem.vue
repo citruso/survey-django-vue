@@ -3,27 +3,27 @@ router-link#item(
   :to="{ name: 'poll', params: { id: poll.id }}"
   tag="li"
 )
-  #avatar(:class="isCompleted")
+  #avatar(:class="stateAvatarIcon")
   #info
     #title {{ poll.name }}
     #desc {{ poll.desc }}
   #menu
     #time {{ poll.time | localeTime }}
-    #bookmark(:class="isFav" @click.prevent="updateFavs")
+    #bookmark(:class="stateFavButton" @click.prevent="updateFavs")
 </template>
 
 <script>
 export default {
-  name: 'PollItem',
+  name: 'PollsListItem',
   props: ['poll'],
   computed: {
-    isCompleted() {
-      return this.$store.getters.isCompleted(this.poll.id)
+    stateAvatarIcon() {
+      return this.$store.getters.isPollCompleted(this.poll.id)
         ? 'bi-file-earmark-check'
         : 'bi-file-earmark-text'
     },
-    isFav() {
-      return this.$store.getters.isFav(this.poll.id)
+    stateFavButton() {
+      return this.$store.getters.isPollBookmarked(this.poll.id)
         ? 'bi-star-fill'
         : 'bi-star'
     },

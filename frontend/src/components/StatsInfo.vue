@@ -1,4 +1,4 @@
-<template lang="pug">
+<template lang="pug" functional>
 section#stats
   #box-wrap.box
     #placeholder.bi-graph-up
