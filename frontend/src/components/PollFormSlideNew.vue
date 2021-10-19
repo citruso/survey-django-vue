@@ -1,36 +1,47 @@
-<template lang="pug">
-#slide
-  textarea#question.text(
-    :value="slide.question"
-    @blur="$emit('input-question', $event.target.value.trim())"
+<template>
+<div class="slide">
+  <textarea
+    class="question"
     placeholder="Введите Ваш вопрос"
     maxlength="100"
-  )
-  #answers
-    textarea.text(
+    :value="slide.question"
+    @blur="$emit('input-question', $event.target.value.trim())"
+  />
+  <div class="answers">
+    <textarea
       v-if="slide.type == 'text'"
       placeholder="Напишите Ваш ответ здесь..."
       disabled
-    )
-    ol.text(v-else)
-      input.text(
+    />
+    <ol v-else>
+      <input
         v-for="(choice, index) in slide.choices"
+        placeholder="Ответ"
+        maxlength="50"
         :key="index"
         :value="slide.choices[index]"
         @blur="$emit('input-choice', { index, choice: $event.target.value.trim() })"
-        placeholder="Ответ"
-        maxlength="50"
-      )
-      #menu
-        #row(v-for="(_, index) in slide.choices" :key="index")
-          #add.btn-circular.bi-plus-circle(
+      />
+      <div class="actions">
+        <div
+          v-for="(_, index) in slide.choices"
+          :key="index"
+          class="row">
+          <div
+            class="add btn-circular bi-plus-circle"
             v-show="!isMaxChoices"
             @click="$emit('push-choice')"
-          )
-          #sub.btn-circular.bi-dash-circle(
-            v-if="!isMinChoices"
-            @click="$emit('pop-choice', index)"
-          )
+          />
+          <div
+            class="sub btn-circular bi-dash-circle"
+            v-show="!isMinChoices"
+            @click="$emit('pop-choice')"
+          />
+        </div>
+      </div>
+    </ol>
+  </div>
+</div>
 </template>
 
 <script>
@@ -51,7 +62,7 @@ export default {
 </script>
 
 <style lang="sass">
-#slide
+.slide
   textarea
     background-color: #fff
     text-align: center
@@ -67,14 +78,17 @@ export default {
     line-height: 33px
     margin-bottom: 50px
     overflow-wrap: anywhere
-  #answers
+
+  .answers
     textarea
       height: 87px
       width: 100%
       font-size: 18px
+
     ol
       grid-gap: 15px
       position: relative
+
       input
         font-size: 16px
         border-radius: 10px
@@ -83,7 +97,8 @@ export default {
         background-color: $hovered
         padding: 10px 90px 10px 20px
         border: 1px solid $divider
-      #menu
+
+      .actions
         position: absolute
         display: flex
         flex-direction: column
@@ -91,19 +106,24 @@ export default {
         font-size: 24px
         grid-gap: 15px
         padding-right: 5px
-        & > #row
+
+        & > .row
           display: flex
           grid-gap: 5px
           padding: 4px
           justify-content: flex-end
           transition: opacity .1s
-          &:last-of-type #add
+
+          &:last-of-type .add
             display: inline-block
-          #add
+
+          .add
             display: none
+
           & > *
             opacity: .4
             padding: 6px
+
             &:hover
               opacity: 1
 </style>

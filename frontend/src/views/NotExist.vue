@@ -1,6 +1,7 @@
-<template lang="pug" functional>
-  #empty-content.text
-    span 404
+<template functional>
+<div class="empty-content text">
+  <span>404</span>
+</div>
 </template>
 
 <script>
@@ -10,10 +11,11 @@ export default {
 </script>
 
 <style lang="sass">
-#empty-content
+.empty-content
   display: flex
   justify-content: center
   align-items: center
+
   span
     font-size: 48px
     font-weight: 700

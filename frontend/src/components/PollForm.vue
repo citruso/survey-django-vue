@@ -1,53 +1,73 @@
-<template lang="pug">
-section#poll-form.box
-  #preloader(v-if="isLoading")
-  #topbar.text
-    #back(@click="prevPage")
-      i.bi-chevron-left
-      | Назад
-    span {{ poll.name | formattedName }}
-    #forward(v-if="!page" @click="nextPage") Далее
-      i.bi-chevron-right
-    #counter(v-else) {{ slidePos + 1 }} / {{ poll.slides.length }}  <!-- +1 for ux comfort -->
+<template>
+<div class="poll-form box">
+  <div v-if="isLoading" class="preloader" />
+  <div class="topbar text">
+    <div class="back" @click="prevPage">
+      <i class="bi-chevron-left" />
+      Назад
+    </div>
+    <span>{{ poll.name | formattedName }}</span>
+    <div v-if="!page" class="forward" @click="nextPage">
+      Далее
+      <i class="bi-chevron-right" />
+    </div>
+    <div v-else class="counter">{{ slidePos + 1 }} / {{ poll.slides.length }}</div>
+  </div>
 
-  .overlay(v-if="!page")
-    PollFormInfo(
+  <div v-if="!page" class="overlay">
+    <poll-form-info
       :poll="poll"
       @input-name="dynamicPollName"
       @input-desc="poll.desc = $event"
-    )
-  .overlay(v-else)
-    PollFormSlide(
+    />
+  </div>
+  <div v-else class="overlay">
+    <poll-form-slide
       v-if="poll.id != -1"
       :slide="currentSlide"
       @input-answer="currentSlide.answerText = $event"
       @push-answer="currentSlide.answers.push($event)"
       @pop-answer="currentSlide.answers.pop()"
       @splice-answer="currentSlide.answers.splice($event, 1)"
-    )
-    PollFormSlideNew(
+    />
+    <poll-form-slide-new
       v-else
       :slide="currentSlide"
       @input-question="currentSlide.question = $event"
       @input-choice="$set(currentSlide.choices, $event.index, $event.choice)"
       @push-choice="currentSlide.choices.push('')"
       @pop-choice="currentSlide.choices.splice($event, 1)"
-    )
+    />
+  </div>
 
-  #bottombar(v-if="page")
-    #menu
-      #left.btn-circular.bi-arrow-left(@click="prevSlide")
-      #add.btn-circular.bi-three-dots(
+  <div v-if="page" class="bottombar">
+    <div class="actions">
+      <div
+        class="left btn-circular bi-arrow-left"
+        @click="prevSlide"
+      />
+      <div
         v-if="poll.id == -1"
+        class="add btn-circular bi-three-dots"
         @click.stop="isVisible = !isVisible"
-      )
-      #right.btn-circular.bi-arrow-right(@click="nextSlide")
-      PopupMenu(v-show="isVisible" v-on-clickaway="closePopup")
-        li(
+      />
+      <div
+        class="left btn-circular bi-arrow-right"
+        @click="nextSlide"
+      />
+      <popup-menu v-show="isVisible" v-on-clickaway="closePopup">
+        <li
           v-for="item in slidesTypes"
-          :class="[item.class, { 'active': currentSlide.type == item.type }]"
-          @click="currentSlide.type = item.type"
-        ) {{ item.text }}
+          :key="item.type"
+          :class="{ 'active': currentSlide.type == item.type }"
+          @click="currentSlide.type = item.type">
+          <i :class="item.class" />
+          {{ item.text }}
+        </li>
+      </popup-menu>
+    </div>
+  </div>
+</div>
 </template>
 
 <script>
@@ -191,22 +211,26 @@ export default {
 </script>
 
 <style lang="sass">
-#poll-form
+.poll-form
   max-width: 786px
   flex: 1 1 auto
   position: relative
+
   @media screen and (max-width: $mark)
     outline: 0.7px solid $divider
-  #preloader
+
+  .preloader
     width: 100%
     height: 100%
     background-image: url(../assets/loader.gif)
     background-size: cover
     position: absolute
     opacity: 0.6
-  #topbar
+
+  .topbar
     display: flex
     height: 50px
+
     span
       flex-grow: 1
       text-align: center
@@ -217,35 +241,42 @@ export default {
       text-overflow: ellipsis
       overflow: hidden
       white-space: nowrap
-    #back, #forward
+
+    .back, .forward
       transition: background-color linear 0.1s
       font-size: 14px
       line-height: 19px
       color: $placeholder
       width: 100px
       cursor: pointer
-    #back
+
+    .back
       display: inherit
       align-items: center
       padding-right: 15px
+
       i
         font-size: 20px
         padding: 15px
         padding-right: 10px
+
       &:hover
         background: linear-gradient(to right,$background 50%,#fff)
-    #forward
+
+    .forward
       display: inherit
       align-items: center
       justify-content: flex-end
       padding-left: 15px
+
       i
         font-size: 20px
         padding: 15px
         padding-left: 10px
+
       &:hover
         background: linear-gradient(to left,$background 50%,#fff)
-    #counter
+    .counter
       width: 100px
       font-weight: 600
       font-size: 16px
@@ -254,16 +285,18 @@ export default {
       padding-right: 20px
       text-align: end
       flex-shrink: 0
-  #bottombar
+  .bottombar
     height: 50px
     display: flex
     justify-content: center
-    #menu
+
+    .actions
       display: flex
       align-items: center
       grid-gap: 10px
       position: relative
-      #add, #left, #right
+
+      .add, .left, .right
         font-size: 26px
         padding: 6px 8px 4px
 </style>

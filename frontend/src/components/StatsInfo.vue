@@ -1,8 +1,11 @@
-<template lang="pug" functional>
-section#stats
-  #box-wrap.box
-    #placeholder.bi-graph-up
-    .text Статистика
+<template functional>
+<div class="stats">
+  <div class="box box-wrap">
+    <div class="placeholder bi-graph-up">
+      <p class="text">Статистика</p>
+    </div>
+  </div>
+</div>
 </template>
 
 <script>
@@ -12,16 +15,19 @@ export default {
 </script>
 
 <style lang="sass">
-#stats
+.stats
   flex: 0 0 250px
+
   @media screen and (max-width: 1000px)
     display: none
-  #box-wrap
+
+  .box-wrap
     display: flex
     flex-direction: column
     align-items: center
     padding: 100px 0
-    #placeholder
+
+    .placeholder
       font-size: 105px
       color: $field
     .text

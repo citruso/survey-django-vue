@@ -1,14 +1,19 @@
-<template lang="pug" functional>
-#index-page
-  #main-wrap
-    main
-      #block
-        #info.text
-          #title Пройдите опрос
-          #desc Для прохождения опроса Вам необходимо иметь учетную запись. Войдите или Зарегистрируйтесь.
-        #placeholder.bi-kanban-fill
-      #slider
-  footer
+<template functional>
+<div class="index-page">
+  <div class="main-wrap">
+    <main>
+      <div class="block">
+        <div class="info text">
+          <div class="title">Пройдите опрос</div>
+          <div class="desc">Для прохождения опроса Вам необходимо иметь учетную запись. Войдите или Зарегистрируйтесь.</div>
+        </div>
+        <div class="placeholder bi-kanban-fill" />
+      </div>
+      <div class="slider" />
+    </main>
+  </div>
+  <footer />
+</div>
 </template>
 
 <script>
@@ -18,53 +23,66 @@ export default {
 </script>
 
 <style lang="sass">
-#index-page
+.index-page
+
   footer
     height: 50px
-  #main-wrap
+
+  .main-wrap
     margin-top: 50px
+
     @media screen and (max-width: $mark)
       margin-top: 90px
+
     main
       display: flex
       align-items: center
-    #block
+
+    .block
       position: absolute
       width: 100%
       display: flex
       flex-direction: row
       justify-content: center
       align-items: center
-      #info
+
+      .info
         flex: 0 1 422px
         filter: drop-shadow(0px 5px 4px rgba(0, 0, 0, 0.4))
+
         @media screen and (max-width: 500px)
           zoom: 0.5
-        #title
+
+        .title
           margin-bottom: 25px
           color: #fff
           font-weight: 700
           font-size: 48px
           line-height: 55px
-        #desc
+
+        .desc
           color: #fff
           font-size: 24px
           line-height: 28px
-      #placeholder
+
+      .placeholder
         font-size: 200px
         color: #fff
         transform: rotate(180deg) scaleX(1.05)
         margin-left: 50px
         filter: drop-shadow(5px 10px 4px rgba(0, 0, 0, 0.4))
+
         @media screen and (max-width: 900px)
           display: none
-    #slider
+
+    .slider
       width: 100%
       height: 84vh
       max-height: 667px
       overflow: hidden
       background: url(../assets/slider.png) 0px repeat-x
       animation: slide linear 60s infinite
+
       @keyframes slide
         0%
           background-position: 0 0

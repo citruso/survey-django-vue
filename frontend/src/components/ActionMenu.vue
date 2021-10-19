@@ -1,24 +1,34 @@
-<template lang="pug">
-  section#action-menu.box
-    nav.text
-      ol(v-if="pollID == -1")
-        li#fadeButton(@click="save") Сохранить
-          i.bi-check2(:class="{ 'fade': fade }")
-        .divider
-        li(
-          :class="isPoll ? 'enabled' : 'disabled'"
-          @click="eventBus.$emit('publish-poll')"
-        ) Опубликовать
-      ol(v-else)
-        li#fadeButton(@click="updateFavs") Добавить в закладки
-          i.bi-check2(:class="{ 'fade': fade }")
-        li(v-if="isAdmin" @click="eventBus.$emit('delete-poll')") Удалить
-        .divider(v-if="!isPollCompleted(pollID)")
-        li(
-          v-if="!isPollCompleted(pollID)"
-          :class="isAnswer ? 'enabled' : 'disabled'"
-          @click="eventBus.$emit('create-answer')"
-        ) Отправить ответ
+<template>
+<div class="box action-menu">
+  <nav class="text">
+    <ol v-if="pollID == -1">
+      <li class="fade-button" @click="save">
+        Сохранить
+        <i class="bi-check2" :class="{'fade': fade}" />
+      </li>
+      <i class="divider" />
+      <li
+        :class="isPoll ? 'enabled' : 'disabled'"
+        @click="eventBus.$emit('publish-poll')">
+        Опубликовать
+      </li>
+    </ol>
+    <ol v-else>
+      <li class="fade-button" @click="updateFavs">
+        Добавить в закладки
+        <i class="bi-check2" :class="{'fade': fade}" />
+      </li>
+      <li v-if="isAdmin" @click="eventBus.$emit('delete-poll')">Удалить</li>
+      <i class="divider" v-if="!isPollCompleted(pollID)" />
+      <li
+        v-if="!isPollCompleted(pollID)"
+        :class="isAnswer ? 'enabled' : 'disabled'"
+        @click="eventBus.$emit('create-answer')">
+        Отправить ответ
+      </li>
+    </ol>
+  </nav>
+</div>
 </template>
 
 <script>
@@ -64,33 +74,41 @@ export default {
 </script>
 
 <style lang="sass">
-#action-menu
+.action-menu
   flex: 0 0 250px
   max-width: 250px
   padding: 7px 0
   white-space: nowrap
+
   @media screen and  (max-width: $mark)
     flex-grow: 1
     flex-shrink: 1
     max-width: none
+
   ol
-    #fadeButton
+    .fade-button
       display: flex
       justify-content: space-between
+
       i
         opacity: 0
         font-size: 18px
+
     & > li
       padding: 9px 20px
       font-size: 14px
       line-height: 19px
+
   .disabled
     color: $divider
     pointer-events: none
+
   .enabled
     color: $link
+
   .fade
     animation: opacity 3s
+
     @keyframes opacity
       0%
         opacity: 1
